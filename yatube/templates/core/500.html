@@ -1,0 +1,10 @@
+{% extends "base.html" %}
+{% block title %}INTERNAL SERVER ERROR 500{% endblock %}
+{% block page_top %}
+Ошибка сервера
+{% endblock %}
+{% block content %}
+  <h1>INTERNAL SERVER ERROR 500</h1>
+  <p>На сервере произошла непредвиденная ошибка. Скоро она будет исправлена.</p>
+  <a href="{% url 'posts:index' %}">Идите на главную</a>
+{% endblock %} 
