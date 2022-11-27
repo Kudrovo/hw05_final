@@ -1,10 +1,16 @@
-from django.test import TestCase, Client
+import tempfile
+
+from django.test import TestCase, Client, override_settings
+from django.conf import settings
 from django.urls import reverse
 from django.core.files.uploadedfile import SimpleUploadedFile
 
 from posts.models import Comment, Group, Post, User
 
+TEMP_MEDIA_ROOT = tempfile.mkdtemp(dir=settings.BASE_DIR)
 
+
+@override_settings(MEDIA_ROOT=TEMP_MEDIA_ROOT)
 class PostCreateForm(TestCase):
     @classmethod
     def setUpClass(cls):

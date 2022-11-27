@@ -11,7 +11,7 @@
   {% endblock %}
   {% block content %}
   {% include 'posts/includes/switcher.html' %}
-  {% cache 500 sidebar request.user.username %}
+  {% cache 500 sidebar %}
     <div class="container py-1">   
         {% for post in page_obj %}
           <article>

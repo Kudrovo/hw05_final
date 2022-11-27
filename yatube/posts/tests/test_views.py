@@ -281,18 +281,19 @@ class FollowTest(TestCase):
         self.author_client = Client()
         self.authorized_client.force_login(self.user2)
         self.author_client.force_login(self.user3)
+        cache.clear()
 
     def test_following(self):
-        cache.clear()
-        url = f'/profile/{self.user3.username}/profile_follow/'
+        url = f'/profile/{self.user3.username}/follow/'
         self.authorized_client.get(url)
+        cache.clear()
         self.assertTrue(Follow.objects.filter(
             user=self.user2, author=self.user3).exists())
 
     def test_unfollow(self):
         cache.clear()
-        url = f'/profile/{self.user3.username}/profile_follow/'
-        unfollow_url = f'/profile/{self.user3.username}/profile_unfollow/'
+        url = f'/profile/{self.user3.username}/follow/'
+        unfollow_url = f'/profile/{self.user3.username}/unfollow/'
         self.authorized_client.get(url)
         self.authorized_client.get(unfollow_url)
         cache.clear()
@@ -301,7 +302,7 @@ class FollowTest(TestCase):
 
     def test_followed_author_post_on_index(self):
         cache.clear()
-        url = f'/profile/{self.user3.username}/follow'
+        url = f'/profile/{self.user3.username}/follow/'
         self.authorized_client.get(url)
         response = self.authorized_client.get(reverse('posts:follow_index'))
-        self.assertIsInstance(response.context.get('page_obj'), self.post2)
+        self.assertEqual(response.context.get('page_obj')[0], self.post2)

@@ -2,16 +2,15 @@
 {% load thumbnail %}
 {% load cache %}
   {% block title %}
-    Главная страница проекта Yatube
+    Подписки
   {% endblock %}
   {% block page_top %}
     <div class="container py-5">
-      <h1>Последние обновления на сайте</h1>
+      <h1>Последние обновления авторов</h1>
     </div>
   {% endblock %}
   {% block content %}
   {% include 'posts/includes/switcher.html' %}
-  {% cache 500 sidebar %} 
     <div class="container py-1">   
         {% for post in page_obj %}
           <article>
@@ -38,6 +37,5 @@
           {% endif %}
         {% endfor %}
       {% include 'posts/includes/paginator.html' %} 
-    </div>  
-  {% endcache %}     
+    </div>     
   {% endblock content %}
