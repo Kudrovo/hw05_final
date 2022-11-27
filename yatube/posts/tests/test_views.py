@@ -226,6 +226,9 @@ class PaginatorViewsTest(TestCase):
             ))
         cls.posts = Post.objects.bulk_create(cls.posts_count)
 
+    def setUp(self):
+        cache.clear()
+
     def test_first_page_contains_ten_records(self):
         """На первой странице отображается десять записей"""
         views_responses = {
