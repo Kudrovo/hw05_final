@@ -66,7 +66,7 @@ class Comment(models.Model):
     created = models.DateTimeField(auto_now_add=True)
 
     class Meta:
-        ordering = ('created',)
+        ordering = ['created']
 
     def __str__(self):
         return self.text
@@ -85,4 +85,6 @@ class Follow(models.Model):
     )
 
     class Meta:
-        unique_together = ['user', 'author']
+        constraints = (models.UniqueConstraint(
+            fields=['user', 'author'], name='follow_constraint'
+        ),)
