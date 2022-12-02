@@ -2,7 +2,6 @@ from http import HTTPStatus
 
 from django.test import TestCase, Client
 from django.urls import reverse
-from django.core.cache import cache
 
 from posts.models import Group, Post, User
 
@@ -30,21 +29,43 @@ class PostURLTests(TestCase):
         self.authorized_client1 = Client()
         self.authorized_client1.force_login(self.user1)
 
-    def test_guest_client_urls(self):
-        """Проверяем ссылки для неавторизованнных пользователей"""
+    def test_avaliable_pages_status_for_guest(self):
+        """Проверяем статусы страниц доступных для гостей"""
         urls = {
-            reverse('posts:index'): 'posts/index.html',
-            reverse('posts:group_list', kwargs={'slug': self.group.slug}):
-            'posts/group_list.html',
-            reverse('posts:profile', kwargs={'username': self.user.username}):
-            'posts/profile.html',
-            reverse('posts:post_detail', kwargs={'post_id': self.post.pk}):
-            'posts/post_detail.html',
+            '/': 'Главная страница',
+            f'/group/{self.group.slug}/': 'Страница группы',
+            f'/profile/{self.user.username}/': 'Страница профиля',
+            f'/posts/{self.post.pk}/': 'Страница поста',
         }
-        for address, template in urls.items():
+        for address in urls.keys():
             with self.subTest(address=address):
                 response = self.client.get(address)
-                self.assertTemplateUsed(response, template)
+                self.assertEqual(response.status_code, HTTPStatus.OK)
+
+    def test_unavaliable_pages_status_for_guest(self):
+        """Проверяем статусы страниц недоступных для гостей"""
+        urls = {
+            '/create/': 'Страница создания поста',
+            f'/posts/{self.post.pk}/edit/': 'Страница изменения поста'
+        }
+        for address in urls.keys():
+            with self.subTest(address=address):
+                response = self.client.get(address)
+                self.assertEqual(response.status_code, HTTPStatus.FOUND)
+
+    def test_pages_status_for_authorized_users(self):
+        """Проверяем статусы страниц для авторизованных пользователей"""
+        urls = {
+            '/': 'Главная страница',
+            f'/group/{self.group.slug}/': 'Страница группы',
+            f'/profile/{self.user.username}/': 'Страница профиля',
+            f'/posts/{self.post.pk}/': 'Страница поста',
+            '/create/': 'Страница создания поста',
+            f'/posts/{self.post.pk}/edit/': 'Страница изменения поста'
+        }
+        for address in urls.keys():
+            with self.subTest(address=address):
+                response = self.authorized_author.get(address)
                 self.assertEqual(response.status_code, HTTPStatus.OK)
 
     def test_unexpected_page(self):
@@ -54,7 +75,6 @@ class PostURLTests(TestCase):
 
     def test_urls_correct_templates(self):
         """Проверяем шаблоны на соответствие ссылкам и доступность ссылок"""
-        cache.clear()
         urls = {
             '/': 'posts/index.html',
             f'/group/{self.group.slug}/': 'posts/group_list.html',
@@ -67,12 +87,10 @@ class PostURLTests(TestCase):
             with self.subTest(address=address):
                 response = self.authorized_author.get(address)
                 self.assertTemplateUsed(response, template)
-                self.assertEqual(response.status_code, HTTPStatus.OK)
 
     def test_create_redirect_anonymous(self):
         """Проверяем переадресацию из редактирования записи для гостей"""
         response = self.client.get(f'/posts/{self.post.pk}/edit/', follow=True)
-        self.assertEqual(response.status_code, HTTPStatus.OK)
         self.assertRedirects(
             response, reverse('users:login') + '?next=' + reverse(
                 'posts:post_edit', kwargs={'post_id': self.post.pk})
@@ -81,7 +99,6 @@ class PostURLTests(TestCase):
     def test_edit_redirect_anonymous(self):
         """Проверяем переадресацию из создания новой записи для гостей"""
         response = self.client.get('/create/', follow=True)
-        self.assertEqual(response.status_code, HTTPStatus.OK)
         self.assertRedirects(
             response, reverse('users:login') + '?next=' + reverse(
                 'posts:post_create')
@@ -91,7 +108,6 @@ class PostURLTests(TestCase):
         """Проверяем переадресацию из редактирования записи для не ее автора"""
         response = self.authorized_client1.get(
             f'/posts/{self.post.pk}/edit/', follow=True)
-        self.assertEqual(response.status_code, HTTPStatus.OK)
         self.assertRedirects(
             response, reverse(
                 'posts:post_detail', kwargs={'post_id': self.post.pk})

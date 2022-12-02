@@ -38,12 +38,10 @@ def profile(request, username):
     if request.user.is_authenticated:
         following = Follow.objects.filter(
             user=request.user, author=author).exists()
-    followed = Follow.objects.filter(user=author)
     context = {
         'author': author,
         'page_obj': page_obj,
         'following': following,
-        'followed': followed
     }
 
     return render(request, 'posts/profile.html', context)

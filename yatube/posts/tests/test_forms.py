@@ -83,7 +83,7 @@ class PostCreateForm(TestCase):
         new_post = Post.objects.create(
             text='Тестовый текст',
             author=self.user,
-            group=self.group1,
+            group=self.group,
         )
         form_data = {
             'text': 'Новый текст',
@@ -118,19 +118,20 @@ class PostCreateForm(TestCase):
         form_data_comment = {
             'text': 'comment'
         }
-        comment = self.authorized_client.post(
+        post_comment = self.authorized_client.post(
             reverse('posts:add_comment', kwargs={'post_id': new_post.pk}),
             data=form_data_comment,
             follow=True
         )
-        self.assertEqual(comment.status_code, 200)
+        response = self.authorized_client.get(reverse(
+            'posts:post_detail', kwargs={'post_id': new_post.pk}))
+        comment = response.context.get('comments')[0]
+        comment_obj = Comment.objects.first()
+        self.assertEqual(post_comment.status_code, 200)
         self.assertEqual(Comment.objects.count(), comments_count + 1)
-        self.assertEqual(Comment.objects.first().post, new_post)
-        self.assertEqual(Comment.objects.first().post.text, new_post.text)
-        self.assertEqual(Comment.objects.first().post.author, new_post.author)
-        self.assertEqual(Comment.objects.first().post.group, new_post.group)
-        self.assertEqual(
-            str(Comment.objects.first()), form_data_comment['text'])
+        self.assertEqual(comment_obj.post, comment.post)
+        self.assertEqual(comment_obj.text, comment.text)
+        self.assertEqual(comment_obj.author, comment.author)
 
     def test_redirect_guest_user_trying_to_comment(self):
         """При отправке формы, неавторизированный клиент будет перенаправлен"""

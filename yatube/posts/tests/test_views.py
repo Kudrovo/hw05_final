@@ -6,7 +6,17 @@ from django.core.cache import cache
 from posts.models import Comment, Follow, Group, Post, User
 from posts.forms import PostForm, CommentForm
 from posts.constants import (
-    NUMBER_OF_POSTS_PER_PAGE, VIEWS_TEST_FOR_SECOND_PAGE,)
+    NUMBER_OF_POSTS_PER_PAGE, VIEWS_TEST_FOR_SECOND_PAGE,
+    ONE_CONSTANT, FOURTEEN_CONSTANT)
+
+
+def check_post_attributes(self, post):
+    """Вспомогательный метод для проверки атрибутов поста"""
+    responsed = (post.id, post.text, post.author.username,
+                 post.group, post.image)
+    post_obj = (self.post.pk, self.post.text, self.post.author.username,
+                self.group, self.post.image)
+    return responsed, post_obj
 
 
 class PostViewsTests(TestCase):
@@ -75,13 +85,11 @@ class PostViewsTests(TestCase):
     def test_home_page_show_correct_context(self):
         """Шаблон index сформирован с правильным контекстом."""
         cache.clear()
+
         response = self.authorized_author.get(reverse('posts:index'))
         post = response.context['page_obj'][0]
-        self.assertEqual(post.id, self.post.pk)
-        self.assertEqual(post.text, self.post.text)
-        self.assertEqual(post.author.username, self.post.author.username)
-        self.assertEqual(post.group, self.group)
-        self.assertEqual(post.image, self.post.image)
+        responsed, post_obj = check_post_attributes(self, post)
+        self.assertEqual(responsed, post_obj)
 
     def test_group_list_show_correct_context(self):
         """Шаблон group_list сформирован с правильным контекстом."""
@@ -89,11 +97,8 @@ class PostViewsTests(TestCase):
             'posts:group_list', kwargs={'slug': self.group.slug})
         )
         post = response.context['page_obj'][0]
-        self.assertEqual(post.id, self.post.pk)
-        self.assertEqual(post.text, self.post.text)
-        self.assertEqual(post.author.username, self.post.author.username)
-        self.assertEqual(post.group, self.group)
-        self.assertEqual(post.image, self.post.image)
+        responsed, post_obj = check_post_attributes(self, post)
+        self.assertEqual(responsed, post_obj)
         group = response.context['group']
         self.assertEqual(group.title, self.group.title)
         self.assertEqual(group.slug, self.group.slug)
@@ -105,17 +110,12 @@ class PostViewsTests(TestCase):
             'posts:profile', kwargs={'username': self.post.author})
         )
         post = response.context['page_obj'][0]
-        self.assertEqual(post.id, self.post.pk)
-        self.assertEqual(post.text, self.post.text)
-        self.assertEqual(post.author.username, self.post.author.username)
-        self.assertEqual(post.group, self.group)
-        self.assertEqual(post.image, self.post.image)
+        responsed, post_obj = check_post_attributes(self, post)
+        self.assertEqual(responsed, post_obj)
         author = response.context['author']
         self.assertEqual(author.username, self.user.username)
         following = response.context['following']
         self.assertEqual(following, False)
-        followed = response.context['followed']
-        self.assertIsNotNone(followed)
 
     def test_post_detail_show_correct_context(self):
         """Шаблон post_detail сформирован с правильным контекстом."""
@@ -125,11 +125,8 @@ class PostViewsTests(TestCase):
         form = response.context.get('form')
         self.assertIsInstance(form, CommentForm)
         post = response.context['post']
-        self.assertEqual(post.pk, self.post.pk)
-        self.assertEqual(post.text, self.post.text)
-        self.assertEqual(post.author.username, self.post.author.username)
-        self.assertEqual(post.group, self.group)
-        self.assertEqual(post.image, self.post.image)
+        responsed, post_obj = check_post_attributes(self, post)
+        self.assertEqual(responsed, post_obj)
         comments = response.context.get('comments')[0]
         self.assertEqual(comments.text, self.comment.text)
         self.assertEqual(comments.post, self.comment.post)
@@ -148,10 +145,8 @@ class PostViewsTests(TestCase):
         form = response.context.get('form')
         self.assertIsInstance(form, PostForm)
         post = response.context['post']
-        self.assertEqual(post.pk, self.post.pk)
-        self.assertEqual(post.text, self.post.text)
-        self.assertEqual(post.author.username, self.post.author.username)
-        self.assertEqual(post.group, self.group)
+        responsed, post_obj = check_post_attributes(self, post)
+        self.assertEqual(responsed, post_obj)
         is_edit = response.context['is_edit']
         self.assertEqual(is_edit, True)
 
@@ -210,16 +205,13 @@ class PaginatorViewsTest(TestCase):
             description='test'
         )
         cls.posts_count = []
-        for i in range(1, 14):
+        for i in range(ONE_CONSTANT, FOURTEEN_CONSTANT):
             cls.posts_count.append(Post(
                 text=f'Тестовый текст {i}',
                 author=cls.user,
                 group=cls.group
             ))
-        cls.posts = Post.objects.bulk_create(cls.posts_count)
-
-    def setUp(self):
-        cache.clear()
+        Post.objects.bulk_create(cls.posts_count)
 
     def test_first_page_contains_ten_records(self):
         """На первой странице отображается десять записей"""
@@ -273,7 +265,7 @@ class FollowTest(TestCase):
 
     def test_following(self):
         """Подписка работает корректно"""
-        Follow.objects.all().delete()
+        Follow.objects.filter(user=self.user, author=self.author).delete()
         url = reverse(
             'posts:profile_follow', kwargs={'username': self.author.username})
         self.authorized_client.get(url)
@@ -283,8 +275,6 @@ class FollowTest(TestCase):
     def test_unfollow(self):
         """Отписка работает корректно"""
         Follow.objects.create(user=self.user, author=self.author)
-        self.assertTrue(Follow.objects.filter(
-            user=self.user, author=self.author).exists())
         unfollow_url = reverse(
             'posts:profile_unfollow', kwargs={
                 'username': self.author.username})

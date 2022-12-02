@@ -1,3 +1,4 @@
+{% load user_filters %}
 <div class="form-group row my-3 p-3 textarea">
   <label for="{{ field.id_for_label }}"> 
     {{ field.label }}
@@ -5,8 +6,10 @@
     <span class="required text-danger" >*</span>
     {% endif %} 
   </label> 
-      {{ field }}
-  <small id="{{ field.id_for_label }}-help" class="form-text text-muted">
-    {{ field.help_text }}
-  </small>
+    {{ field|addclass:'form-control' }}
+    {% if field.help_text %}
+      <small id="{{ field.id_for_label }}-help" class="form-text text-muted">
+        {{ field.help_text }}
+      </small>
+    {% endif %}
 </div> 

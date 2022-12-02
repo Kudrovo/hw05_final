@@ -21,16 +21,15 @@
                 {% endif %}           
               </div>
               <div class="card-body">        
-                <form method="post" enctype="multipart/form-data">
+                <form method="post" enctype="multipart/form-data"
                 {% if is_edit %} 
                   action="{% url 'posts:post_edit' post.id %}"
                 {% else %}
                   action="{% url 'posts:post_create' %}"
-                {% endif %}>
-                  <input type="hidden" name="csrfmiddlewaretoken" value="">   
+                {% endif %}>  
+                  {% include 'posts/includes/errorsblock.html' %}
                   {% csrf_token %}
                   {% for field in form %}
-                    {% include 'posts/includes/errorsblock.html' %}
                     {% include 'posts/includes/formcard.html' %}
                   {% endfor %}  
                   <div class="d-flex justify-content-end">              
