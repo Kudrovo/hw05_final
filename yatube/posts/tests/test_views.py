@@ -6,17 +6,7 @@ from django.core.cache import cache
 from posts.models import Comment, Follow, Group, Post, User
 from posts.forms import PostForm, CommentForm
 from posts.constants import (
-    NUMBER_OF_POSTS_PER_PAGE, VIEWS_TEST_FOR_SECOND_PAGE,
-    ONE_CONSTANT, FOURTEEN_CONSTANT)
-
-
-def check_post_attributes(self, post):
-    """Вспомогательный метод для проверки атрибутов поста"""
-    responsed = (post.id, post.text, post.author.username,
-                 post.group, post.image)
-    post_obj = (self.post.pk, self.post.text, self.post.author.username,
-                self.group, self.post.image)
-    return responsed, post_obj
+    NUMBER_OF_POSTS_PER_PAGE, VIEWS_TEST_FOR_SECOND_PAGE)
 
 
 class PostViewsTests(TestCase):
@@ -63,6 +53,19 @@ class PostViewsTests(TestCase):
         self.authorized_author = Client()
         self.authorized_author.force_login(self.user)
 
+    def check_post_attributes(self, post):
+        """Вспомогательный метод для проверки атрибутов поста"""
+        objects = {
+            post.id: self.post.pk,
+            post.text: self.post.text,
+            post.author.username: self.post.author.username,
+            post.group: self.group,
+            post.image: self.post.image
+        }
+        for attribute, check in objects.items():
+            with self.subTest(attribute=attribute):
+                self.assertEqual(attribute, check)
+
     def test_authorized_client_template(self):
         """Проверяем шаблоны для авторизованнных пользователей"""
         urls = {
@@ -84,12 +87,9 @@ class PostViewsTests(TestCase):
 
     def test_home_page_show_correct_context(self):
         """Шаблон index сформирован с правильным контекстом."""
-        cache.clear()
-
         response = self.authorized_author.get(reverse('posts:index'))
         post = response.context['page_obj'][0]
-        responsed, post_obj = check_post_attributes(self, post)
-        self.assertEqual(responsed, post_obj)
+        self.check_post_attributes(post)
 
     def test_group_list_show_correct_context(self):
         """Шаблон group_list сформирован с правильным контекстом."""
@@ -97,8 +97,7 @@ class PostViewsTests(TestCase):
             'posts:group_list', kwargs={'slug': self.group.slug})
         )
         post = response.context['page_obj'][0]
-        responsed, post_obj = check_post_attributes(self, post)
-        self.assertEqual(responsed, post_obj)
+        self.check_post_attributes(post)
         group = response.context['group']
         self.assertEqual(group.title, self.group.title)
         self.assertEqual(group.slug, self.group.slug)
@@ -110,8 +109,7 @@ class PostViewsTests(TestCase):
             'posts:profile', kwargs={'username': self.post.author})
         )
         post = response.context['page_obj'][0]
-        responsed, post_obj = check_post_attributes(self, post)
-        self.assertEqual(responsed, post_obj)
+        self.check_post_attributes(post)
         author = response.context['author']
         self.assertEqual(author.username, self.user.username)
         following = response.context['following']
@@ -125,8 +123,7 @@ class PostViewsTests(TestCase):
         form = response.context.get('form')
         self.assertIsInstance(form, CommentForm)
         post = response.context['post']
-        responsed, post_obj = check_post_attributes(self, post)
-        self.assertEqual(responsed, post_obj)
+        self.check_post_attributes(post)
         comments = response.context.get('comments')[0]
         self.assertEqual(comments.text, self.comment.text)
         self.assertEqual(comments.post, self.comment.post)
@@ -145,8 +142,7 @@ class PostViewsTests(TestCase):
         form = response.context.get('form')
         self.assertIsInstance(form, PostForm)
         post = response.context['post']
-        responsed, post_obj = check_post_attributes(self, post)
-        self.assertEqual(responsed, post_obj)
+        self.check_post_attributes(post)
         is_edit = response.context['is_edit']
         self.assertEqual(is_edit, True)
 
@@ -205,7 +201,7 @@ class PaginatorViewsTest(TestCase):
             description='test'
         )
         cls.posts_count = []
-        for i in range(ONE_CONSTANT, FOURTEEN_CONSTANT):
+        for i in range(NUMBER_OF_POSTS_PER_PAGE + VIEWS_TEST_FOR_SECOND_PAGE):
             cls.posts_count.append(Post(
                 text=f'Тестовый текст {i}',
                 author=cls.user,

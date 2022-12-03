@@ -1,14 +1,17 @@
 {% load user_filters %}
 {% url 'users:login' as login %}
-{% if request.path == login%}
+{% if request.path == login %}
   <div class="form-group row my-3"
     {% if field.field.required %} 
       aria-required="true"
     {% else %}
       aria-required="false"
     {% endif %}>
-{% else %}
+{% url 'users:signup' as signup %}
+{% elif request.path == signup %}
   <div class="form-group row my-3">
+{% else %}
+  <div class="form-group row my-3 p-3 textarea">
 {% endif %}
     <label for="{{ field.id_for_label }}">
       {{ field.label }}
@@ -25,6 +28,3 @@
         </small>
       {% endif %}
   </div>
-
-
-

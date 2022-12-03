@@ -32,41 +32,32 @@ class PostURLTests(TestCase):
     def test_avaliable_pages_status_for_guest(self):
         """Проверяем статусы страниц доступных для гостей"""
         urls = {
-            '/': 'Главная страница',
-            f'/group/{self.group.slug}/': 'Страница группы',
-            f'/profile/{self.user.username}/': 'Страница профиля',
-            f'/posts/{self.post.pk}/': 'Страница поста',
+            '/': HTTPStatus.OK,
+            f'/group/{self.group.slug}/': HTTPStatus.OK,
+            f'/profile/{self.user.username}/': HTTPStatus.OK,
+            f'/posts/{self.post.pk}/': HTTPStatus.OK,
+            '/create/': HTTPStatus.FOUND,
+            f'/posts/{self.post.pk}/edit/': HTTPStatus.FOUND
         }
-        for address in urls.keys():
+        for address, status in urls.items():
             with self.subTest(address=address):
                 response = self.client.get(address)
-                self.assertEqual(response.status_code, HTTPStatus.OK)
-
-    def test_unavaliable_pages_status_for_guest(self):
-        """Проверяем статусы страниц недоступных для гостей"""
-        urls = {
-            '/create/': 'Страница создания поста',
-            f'/posts/{self.post.pk}/edit/': 'Страница изменения поста'
-        }
-        for address in urls.keys():
-            with self.subTest(address=address):
-                response = self.client.get(address)
-                self.assertEqual(response.status_code, HTTPStatus.FOUND)
+                self.assertEqual(response.status_code, status)
 
     def test_pages_status_for_authorized_users(self):
         """Проверяем статусы страниц для авторизованных пользователей"""
         urls = {
-            '/': 'Главная страница',
-            f'/group/{self.group.slug}/': 'Страница группы',
-            f'/profile/{self.user.username}/': 'Страница профиля',
-            f'/posts/{self.post.pk}/': 'Страница поста',
-            '/create/': 'Страница создания поста',
-            f'/posts/{self.post.pk}/edit/': 'Страница изменения поста'
+            '/': HTTPStatus.OK,
+            f'/group/{self.group.slug}/': HTTPStatus.OK,
+            f'/profile/{self.user.username}/': HTTPStatus.OK,
+            f'/posts/{self.post.pk}/': HTTPStatus.OK,
+            '/create/': HTTPStatus.OK,
+            f'/posts/{self.post.pk}/edit/': HTTPStatus.OK
         }
-        for address in urls.keys():
+        for address, status in urls.items():
             with self.subTest(address=address):
                 response = self.authorized_author.get(address)
-                self.assertEqual(response.status_code, HTTPStatus.OK)
+                self.assertEqual(response.status_code, status)
 
     def test_unexpected_page(self):
         """Проверяем ссылку на несуществующую страницу"""

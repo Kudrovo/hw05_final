@@ -1,10 +1,7 @@
 {% extends 'base.html' %}
 {% load thumbnail %}
-{% load user_filters %}
     {% block title %}
       Пост {{ post.text|slice:"30" }}
-    {% endblock %}
-    {% block page_top %}
     {% endblock %}
     {% block content %}
       <div class="row">

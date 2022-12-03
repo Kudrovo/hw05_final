@@ -8,11 +8,11 @@
       <div class="card">
         <div class="card-header">Зарегистрироваться</div>
           <div class="card-body">
-            {% include 'users/includes/errorsblock.html' %}
+            {% include 'includes/errorsblock.html' %}
               <form method="post" action="{% url 'users:signup' %}">
               {% csrf_token %}
               {% for field in form %} 
-                {% include 'posts/includes/formcard.html' %}
+                {% include 'includes/formcard.html' %}
               {% endfor %}
               <div class="col-md-6 offset-md-4">
                 <button type="submit" class="btn btn-primary">

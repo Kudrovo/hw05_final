@@ -23,8 +23,7 @@
     <p>
       <a href="{% url 'posts:post_detail' post.pk %}">подробная информация </a>
     </p>
-    {% url 'posts:group_list' post.group.slug as group_url %}
-    {% if request.path != group_url and post.group %}
+    {% if not group and post.group %}
       <a href="{% url 'posts:group_list' post.group.slug %}">все записи группы</a>
     {% endif %}
 </article>

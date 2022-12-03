@@ -10,11 +10,11 @@
           Войти на сайт
         </div>
         <div class="card-body">
-          {% include 'users/includes/errorsblock.html' %}
+          {% include 'includes/errorsblock.html' %}
             <form method="post" action="{% url 'users:signup' %}">
             {% csrf_token %}
             {% for field in form %} 
-              {% include 'posts/includes/formcard.html' %}
+              {% include 'includes/formcard.html' %}
             {% endfor %}
               </div>
             </div>

@@ -6,7 +6,7 @@
     <form method="post" action="{% url 'posts:add_comment' post.id %}">
         {% csrf_token %}      
         <div class="form-group mb-2">
-        {% include 'posts/includes/errorsblock.html' %}
+        {% include 'includes/errorsblock.html' %}
         {{ form.text|addclass:"form-control" }}
         </div>
         <button type="submit" class="btn btn-primary">Отправить</button>
